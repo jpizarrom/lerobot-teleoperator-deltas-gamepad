@@ -13,3 +13,6 @@ git clone https://github.com/jpizarrom/lerobot-teleoperator-deltas-gamepad.git
 cd lerobot-teleoperator-deltas-gamepad
 pip install -e .
 ```
+
+## Reference
+This teleoperator is based on the gamepad teleoperator in [lerobot-teleoperator-gamepad](https://github.com/huggingface/lerobot/tree/main/src/lerobot/teleoperators/gamepad)
