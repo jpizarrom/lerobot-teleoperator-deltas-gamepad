@@ -4,6 +4,21 @@ The teleoperator is implemented to be used mainly with [HILSERL](https://hugging
 
 Actions are deltas in the robot's end-effector space (delta_x, delta_y, delta_z, delta_wx, delta_wy, delta_wz, gripper).
 
+Gamepad controls:
+- RB: Toggle intervention mode
+- Left analog stick (Up/Down): Move Gripper in X plane
+- Left analog stick (Left/Right): Move Gripper in Y plane
+- Right analog stick (Vertical): Move Gripper in Z axis
+- Hold LB + Left analog stick (Up/Down): Rotate Gripper around X axes
+- Hold LB + Left analog stick (Left/Right): Rotate Gripper around Y axes
+- Hold LB + Right analog stick (Left/Right): Rotate Gripper around Z axis
+- Hold RT to open gripper
+- Hold LT to close gripper
+- A/Green button: End episode with SUCCESS
+- B/Red button: End episode with FAILURE
+- X/Blue button: Rerecord episode
+- D-Pad: Additional discrete movement commands (WASD keys) for LeKiwi Base
+
 ## Development
 
 Install the package in editable mode:
