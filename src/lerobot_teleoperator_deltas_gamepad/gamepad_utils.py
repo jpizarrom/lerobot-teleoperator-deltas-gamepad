@@ -269,7 +269,7 @@ class GamepadController(InputController):
             delta_z = -z_input * self.z_step_size  # Up/down
             delta_wx = wx_input * self.wx_step_size  # Rotation around X
             delta_wy = -wy_input * self.wy_step_size  # Rotation around Y
-            delta_wz = -wz_input * self.wz_step_size  # Rotation around Z
+            delta_wz = wz_input * self.wz_step_size  # Rotation around Z
 
             return delta_x, delta_y, delta_z, delta_wx, delta_wy, delta_wz
 
