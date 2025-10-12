@@ -150,12 +150,25 @@ class GamepadController(InputController):
         logging.info(f"Initialized gamepad: {self.joystick.get_name()}")
 
         print("Gamepad controls:")
-        print("  Left analog stick: Move in X-Y plane")
-        print("  Right analog stick (vertical): Move in Z axis")
-        print("  B/Circle button: Exit")
-        print("  Y/Triangle button: End episode with SUCCESS")
-        print("  A/Cross button: End episode with FAILURE")
-        print("  X/Square button: Rerecord episode")
+        print("  RB (right bumper): Toggle intervention mode")
+        print("  Left analog stick (Up/Down): Move Gripper in X plane")
+        print("  Left analog stick (Left/Right): Move Gripper in Y plane")
+        print("  Right analog stick (Vertical): Move Gripper in Z axis")
+        print("  Hold LB + Left analog stick (Up/Down): Rotate Gripper around X axes")
+        print(
+            "  Hold LB + Left analog stick (Left/Right): Rotate Gripper around Y axes"
+        )
+        print(
+            "  Hold LB + Right analog stick (Left/Right): Rotate Gripper around Z axis"
+        )
+        print("  Hold RT (right trigger) to open gripper")
+        print("  Hold LT (left trigger) to close gripper")
+        print("  A/Green button: End episode with SUCCESS")
+        print("  B/Red button: End episode with FAILURE")
+        print("  X/Blue button: Rerecord episode")
+        print(
+            "  D-Pad: Additional discrete movement commands (WASD keys) for LeKiwi Base"
+        )
 
     def stop(self):
         """Clean up pygame resources."""
