@@ -1,24 +1,13 @@
 from lerobot.teleoperators.teleoperator import Teleoperator
 
 from .config_deltas_gamepad import DeltasGamepadConfig
-from enum import IntEnum
 from lerobot.teleoperators.utils import TeleopEvents
 import sys
 from typing import Any
 import numpy as np
 
 
-class GripperAction(IntEnum):
-    CLOSE = -1
-    STAY = 0
-    OPEN = 1
 
-
-gripper_action_map = {
-    "close": GripperAction.CLOSE.value,
-    "open": GripperAction.OPEN.value,
-    "stay": GripperAction.STAY.value,
-}
 
 
 class DeltasGamepad(Teleoperator):
@@ -102,12 +91,8 @@ class DeltasGamepad(Teleoperator):
             "delta_wz": gamepad_action[5],
         }
 
-        # Default gripper action is to stay
-        gripper_action = GripperAction.STAY.value
         if self.config.use_gripper:
-            gripper_command = self.gamepad.gripper_command()
-            gripper_action = gripper_action_map[gripper_command]
-            action_dict["gripper"] = gripper_action
+            action_dict["gripper"] = self.gamepad.gripper_value()
 
         return action_dict
 
