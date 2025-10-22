@@ -274,12 +274,12 @@ class GamepadController(InputController):
     def gripper_value(self):
         """Get the current gripper value from triggers."""
         # Typically, RT is axis 5 and LT is axis 2
-        rt_value = self.current_values.get("joy_5", 0)  # Open gripper
-        lt_value = self.current_values.get("joy_2", 0)  # Close gripper
+        rt_value = self.current_values.get("joy_5", -1)  # Open gripper
+        lt_value = self.current_values.get("joy_2", -1)  # Close gripper
 
         # Normalize trigger values from [-1, 1] to [0, 1]
-        rt_normalized = (rt_value + 1) / 2.0
-        lt_normalized = (lt_value + 1) / 2.0
+        rt_normalized = max(0.0, min(1.0,(rt_value + 1) / 2.0))
+        lt_normalized = max(0.0, min(1.0,(lt_value + 1) / 2.0))
 
         # Gripper value: positive to open, negative to close
         gripper_value = rt_normalized - lt_normalized
