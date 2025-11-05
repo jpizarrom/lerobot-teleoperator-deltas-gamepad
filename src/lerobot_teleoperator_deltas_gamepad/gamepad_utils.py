@@ -50,8 +50,6 @@ class InputController:
         self.running = True
         self.episode_end_status = None  # None, "success", or "failure"
         self.intervention_flag = False
-        self.open_gripper_command = False
-        self.close_gripper_command = False
 
     def start(self):
         """Start the controller and initialize resources."""
@@ -92,15 +90,11 @@ class InputController:
     def should_intervene(self):
         """Return True if intervention flag was set."""
         return self.intervention_flag
+    
+    def gripper_value(self):
+        return 0.0
 
-    def gripper_command(self):
-        """Return the current gripper command."""
-        if self.open_gripper_command == self.close_gripper_command:
-            return "stay"
-        elif self.open_gripper_command:
-            return "open"
-        elif self.close_gripper_command:
-            return "close"
+
 
 
 class GamepadController(InputController):
@@ -129,6 +123,7 @@ class GamepadController(InputController):
 
         self.current_hat = None
         self.intervention_flag = False
+        self.current_values = {}
 
     def start(self):
         """Initialize pygame and the gamepad."""
@@ -196,13 +191,8 @@ class GamepadController(InputController):
                 elif event.button == 2:
                     self.episode_end_status = TeleopEvents.RERECORD_EPISODE
 
-                # # RB button (5) for closing gripper
-                # elif event.button == 5:
-                #     self.close_gripper_command = True
-
-                # # LT button (4) for opening gripper
-                # elif event.button == 4:
-                #     self.open_gripper_command = True
+                elif event.button == 4:
+                    self.current_values["button_4"] = 1
 
                 elif event.button == 5:  # RB button for intervention flag
                     if not self.intervention_flag:
@@ -216,57 +206,48 @@ class GamepadController(InputController):
                 if event.button in [0, 1, 2]:
                     self.episode_end_status = None
 
-                # elif event.button == 5:
-                #     self.close_gripper_command = False
-
-                # elif event.button == 4:
-                #     self.open_gripper_command = False
-
-                # elif event.button == 5:  # RB button for intervention flag
-                #     self.intervention_flag = False
+                elif event.button == 4:
+                    self.current_values["button_4"] = 0
 
             elif event.type == pygame.JOYAXISMOTION:
                 if event.axis == 5:  # RT open gripper
-                    if event.value > 0.0:
-                        self.open_gripper_command = True
-                    else:
-                        self.open_gripper_command = False
+                    self.current_values["joy_5"] = event.value
                 elif event.axis == 2:  # LT close gripper
-                    if event.value > 0.0:
-                        self.close_gripper_command = True
-                    else:
-                        self.close_gripper_command = False
+                    self.current_values["joy_2"] = event.value
+                elif event.axis == 0:
+                    self.current_values["joy_0"] = event.value
+                elif event.axis == 1:
+                    self.current_values["joy_1"] = event.value
+                elif event.axis == 3:
+                    self.current_values["joy_3"] = event.value
+                elif event.axis == 4:
+                    self.current_values["joy_4"] = event.value
+
             elif event.type == pygame.JOYHATMOTION:
                 self.current_hat = event.value
-
-            # # Check for RB button (typically button 5) for intervention flag
-            # if self.joystick.get_button(5):  # right (RB). -1 when not pressed, 1 when pressed
-            #     self.intervention_flag = True
-            # else:
-            #     self.intervention_flag = False
 
     def get_deltas(self):
         """Get the current movement deltas from gamepad state."""
         import pygame
 
         try:
-            rot_mode = self.joystick.get_button(4)  # left (LB)
+            rot_mode = self.current_values.get("button_4", 0)  # left (LB)
             x_input = y_input = z_input = 0
             wx_input = wy_input = wz_input = 0
 
             if not rot_mode:
                 # Read joystick axes
                 # Left stick X and Y (typically axes 0 and 1)
-                y_input = self.joystick.get_axis(0)  # Left/Right
-                x_input = self.joystick.get_axis(1)  # Up/Down
+                y_input = self.current_values.get("joy_0", 0)  # Left/Right
+                x_input = self.current_values.get("joy_1", 0)  # Up/Down
 
                 # Right stick Y (typically axis 3 or 4)
-                z_input = self.joystick.get_axis(4)  # Up/Down for Z
+                z_input = self.current_values.get("joy_4", 0)  # Up/Down for Z
             else:
-                wx_input = self.joystick.get_axis(1)  # Up/Down
-                wy_input = self.joystick.get_axis(0)  # Left/Right
+                wx_input = self.current_values.get("joy_1", 0)  # Up/Down
+                wy_input = self.current_values.get("joy_0", 0)  # Left/Right
 
-                wz_input = self.joystick.get_axis(3)  # Left/Right for Z
+                wz_input = self.current_values.get("joy_3", 0)  # Left/Right for Z
 
             # Apply deadzone to avoid drift
             x_input = 0 if abs(x_input) < self.deadzone else x_input
@@ -289,6 +270,23 @@ class GamepadController(InputController):
         except pygame.error:
             logging.error("Error reading gamepad. Is it still connected?")
             return 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+
+    def gripper_value(self):
+        """Get the current gripper value from triggers."""
+        # Typically, RT is axis 5 and LT is axis 2
+        rt_value = self.current_values.get("joy_5", -1)  # Open gripper
+        lt_value = self.current_values.get("joy_2", -1)  # Close gripper
+
+        # Normalize trigger values from [-1, 1] to [0, 1]
+        rt_normalized = max(0.0, min(1.0,(rt_value + 1) / 2.0))
+        lt_normalized = max(0.0, min(1.0,(lt_value + 1) / 2.0))
+
+        # Gripper value: positive to open, negative to close
+        gripper_value = rt_normalized - lt_normalized
+
+        gripper_value = max(-1.0, min(1.0, gripper_value))
+
+        return gripper_value
 
     def get_buttons(self):
         """Get the current button states from gamepad."""
@@ -317,7 +315,6 @@ class GamepadController(InputController):
         """Reset the gamepad state."""
         self.intervention_flag = False
         self.episode_end_status = None
-        self.open_gripper_command = False
-        self.close_gripper_command = False
+        self.current_values = {}
 
         self.current_hat = None
